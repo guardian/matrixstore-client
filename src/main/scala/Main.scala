@@ -21,6 +21,7 @@ object Main {
 
   def terminalInputLoop(callbacks:Seq[Consumer[LineReader]]=Seq())(implicit terminal: Terminal):Unit = {
     val parser = new DefaultParser()
+
     implicit val lineReader = LineReaderBuilder.builder()
       .terminal(terminal)
       //.completer(completer)
@@ -45,8 +46,6 @@ object Main {
       lineReader.readLine(prompt, "", null.asInstanceOf[MaskingCallback], null)
       val request = lineReader.getParsedLine
       val tokens = request.words().asScala
-      terminal.writer().println(s"You input these tokens: ${tokens.mkString(" | ")}")
-      terminal.writer().flush()
       if(tokens.headOption.contains("exit")) {
         terminal.writer().println("Goodbye!")
         terminal.writer().flush()

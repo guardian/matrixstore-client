@@ -17,9 +17,13 @@ class Interpreter(implicit val actorSystem: ActorSystem, mat:Materializer) {
     LeafToken("stacktrace", new Stacktrace),
     LeafToken("help", new Help),
     LeafToken("search", new Search),
+    LeafToken("lookup", new LookupFilename),
     BranchToken("set", Seq(
       LeafToken("timeout", new SetAsyncTimeout),
       LeafToken("pagesize", new SetPageSize),
+    )),
+    BranchToken("show", Seq(
+      LeafToken("headers", new ShowHeaders)
     ))
   )
 

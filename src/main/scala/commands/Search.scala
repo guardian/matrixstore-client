@@ -83,6 +83,10 @@ class Search extends BaseCommand {
           override def onUpstreamFinish(): Unit = {
             completionPromise.success(Done.done())
           }
+
+          override def onUpstreamFailure(ex: Throwable): Unit = {
+            completionPromise.failure(ex)
+          }
         })
 
         override def preStart(): Unit = {
