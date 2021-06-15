@@ -1,6 +1,9 @@
 import com.typesafe.sbt.packager.docker
 import com.typesafe.sbt.packager.docker.{Cmd, DockerPermissionStrategy}
 
+
+enablePlugins(DockerPlugin, RpmPlugin, AshScriptPlugin)
+
 name := "matrixstore-client"
 
 version := "0.1"
@@ -32,8 +35,9 @@ lazy val `common` = (project in file("common"))
       "org.specs2" %% "specs2-mock" % "4.5.1" % Test,
       "org.mockito" % "mockito-core" % "2.28.2" % Test
     ),
-    Compile / unmanagedJars  += file("lib/mxsjapi.jar"),
-    Compile / unmanagedJars += file("lib/mxsjapi.jar"),
+    updateOptions := updateOptions.value.withCachedResolution(false),
+      Compile / unmanagedJars  += file("lib/mxsjapi.jar"),
+    Compile / unmanagedJars += file("lib/oncrpc.jar"),
   )
 
 lazy val root = (project in file("."))

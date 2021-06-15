@@ -1,5 +1,6 @@
 target
 */target
+common/target
 /.idea
 credentials
 .bsp

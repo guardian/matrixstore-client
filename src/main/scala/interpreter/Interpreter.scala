@@ -18,6 +18,8 @@ class Interpreter(implicit val actorSystem: ActorSystem, mat:Materializer) {
     LeafToken("help", new Help),
     LeafToken("search", new Search),
     LeafToken("lookup", new LookupFilename),
+    LeafToken("delete", new Delete),
+    LeafToken("md5", new MD5),
     BranchToken("set", Seq(
       LeafToken("timeout", new SetAsyncTimeout),
       LeafToken("pagesize", new SetPageSize),
@@ -45,7 +47,7 @@ class Interpreter(implicit val actorSystem: ActorSystem, mat:Materializer) {
         findAndRun(remainder.head, remainder.tail, children)
       case Some(LeafToken(_, cmd))=>
         cmd.run(tokens, session)
-      case None=>
+      case _=>
         terminal.writer().println("Syntax error. Try 'help' for accessing basic online help")
         Success(session)
     }

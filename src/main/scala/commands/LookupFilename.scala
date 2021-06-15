@@ -12,9 +12,6 @@ import scala.util.{Success, Try}
 
 class LookupFilename extends BaseCommand {
   def performLookup(filename:String)(implicit vault:Vault, ec:ExecutionContext, mat:Materializer) = {
-//    MatrixStoreHelper
-//      .findByFilename(vault, filename, Seq("oid", "MXFS_FILENAME"))
-//      .map(result=>Future.sequence(result.map(_.getMetadata))
     for {
       results <- Future.fromTry(MatrixStoreHelper.findByFilename(vault, filename, Seq("oid", "MXFS_FILENAME", "__mxs__length","__mxs__location")))
       fullMeta <- Future.sequence(results.map(_.getMetadata))
@@ -27,16 +24,6 @@ class LookupFilename extends BaseCommand {
     terminal.writer().flush()
   }
 
-  def withVault[A](mxs:MatrixStore, vaultId:String)(cb:(Vault)=>Future[A])(implicit ec:ExecutionContext):Future[A] = {
-    val maybeVault = Try { mxs.openVault(vaultId) }
-    val resultFut = Future.fromTry(maybeVault.map(cb)).flatten
-    resultFut.andThen({
-      case _=>
-        if(maybeVault.isSuccess) maybeVault.get.dispose()
-    })
-    resultFut
-  }
-
   override def run(params: Seq[String], session: Session)(implicit terminal: Terminal, lineReader: LineReader, actorSystem: ActorSystem, mat: Materializer): Try[Session] =  {
     implicit val ec:ExecutionContext = actorSystem.dispatcher
     if(params.length!=2) {
@@ -46,7 +33,7 @@ class LookupFilename extends BaseCommand {
 
     (session.activeConnection, session.activeVaultId) match {
       case (Some(mxs), Some(vaultId))=>
-        val result = withVault(mxs, vaultId) { vault=>
+        val result = withVaultAsync(mxs, vaultId) { vault=>
           for {
             filename <- Future {params(1)}
             result <- performLookup(filename)(vault, actorSystem.dispatcher, mat)
