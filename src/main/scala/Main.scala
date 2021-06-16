@@ -10,6 +10,7 @@ import scala.concurrent.Await
 import scala.jdk.CollectionConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
+import scala.util.{Failure, Success}
 
 object Main {
   lazy implicit val actorSystem:ActorSystem = ActorSystem("matrixstore-client")
@@ -18,6 +19,8 @@ object Main {
   val defaultPrompt = "> "
 
   private val interpreter = new Interpreter
+
+  val maybeVersionInfo = VersionInfo.loadFromResource
 
   def terminalInputLoop(callbacks:Seq[Consumer[LineReader]]=Seq())(implicit terminal: Terminal):Unit = {
     val parser = new DefaultParser()
@@ -33,6 +36,18 @@ object Main {
 
 
     callbacks.foreach(_.accept(lineReader))
+    maybeVersionInfo match {
+      case Success(versionInfo)=>
+        terminal.writer().println(s"Welcome to matrixstore-client version ${versionInfo.buildNumber} from sha ${versionInfo.buildSha}")
+        terminal.writer().println("Use `help` to see a list of available commands")
+        terminal.writer().flush()
+      case Failure(err)=>
+        terminal.writer().println(s"Warning: Could not load version information - ${err.getMessage}")
+        terminal.writer().println("Welcome to matrixstore-client")
+        terminal.writer().println("Use `help` to see a list of available commands")
+        terminal.writer().flush()
+    }
+
     while(true) {
       val prompt = interpreter.session.activeVaultId match {
         case None=>

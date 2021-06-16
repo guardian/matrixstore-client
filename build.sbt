@@ -49,6 +49,7 @@ lazy val root = (project in file("."))
       // https://mvnrepository.com/artifact/org.jline/jline
       "org.jline" % "jline" % "3.20.0"
     ),
+    assembly / mainClass := Some("Main"),
     scalaVersion := "2.13.6",
     version := sys.props.getOrElse("build.number","DEV"),
     dockerPermissionStrategy := DockerPermissionStrategy.CopyChown,
