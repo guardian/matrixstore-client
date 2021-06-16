@@ -4,6 +4,7 @@ import akka.actor.ActorSystem
 import akka.stream.Materializer
 import com.om.mxs.client.japi.{MatrixStore, Vault}
 import interpreter.Session
+import models.ObjectMatrixEntry
 import org.jline.reader.LineReader
 import org.jline.terminal.Terminal
 
@@ -49,5 +50,16 @@ trait BaseCommand {
     val result = maybeVault.flatMap(cb)
     if(maybeVault.isSuccess) maybeVault.get.dispose()
     result
+  }
+
+  def printMeta(entry:ObjectMatrixEntry)(implicit terminal: Terminal) = {
+    terminal.writer().println(s"${entry.oid}\t${entry.getFileSize.map(_.toString).getOrElse("(no size)")}\t\t${entry.pathOrFilename.getOrElse("(no name)")}")
+    entry.attributes.foreach(meta=>{
+      meta.stringValues.foreach(kv=>terminal.writer().println(s"\t${kv._1}: ${kv._2}"))
+      meta.intValues.foreach(kv=>terminal.writer().println(s"\t${kv._1}: ${kv._2}"))
+      meta.longValues.foreach(kv=>terminal.writer().println(s"\t${kv._1}: ${kv._2}"))
+      meta.boolValues.foreach(kv=>terminal.writer().println(s"\t${kv._1}: ${kv._2}"))
+      meta.floatValues.foreach(kv=>terminal.writer().println(s"\t${kv._1}: ${kv._2}"))
+    })
   }
 }

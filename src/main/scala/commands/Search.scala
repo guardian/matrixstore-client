@@ -53,12 +53,13 @@ class Search extends BaseCommand {
           override def onPush(): Unit = {
             val result = grab(in)
             val fields = Seq(
+              result.maybeGetPath().getOrElse("[no path]"),
               result.oid,
               result.getFileSize.map(_.toString).getOrElse("[no size]"),
-              result.maybeGetPath().getOrElse("[no path]"),
             ) ++ fieldsToPrint.map(f => result.stringAttribute(f).getOrElse("-"))
 
-            terminal.writer().println(fields.mkString("\t"))
+            terminal.writer().println(fields.mkString("\n"))
+            terminal.writer().println("------------")
             terminal.writer().flush()
             ctr += 1
             if(ctr==itemsPerPage) {
@@ -133,7 +134,6 @@ class Search extends BaseCommand {
           "MXFS_FILENAME",
           "DPSP_SIZE",
           "__mxs__length",
-          "__mxs__location"
         )
         Try {
           Await.result(

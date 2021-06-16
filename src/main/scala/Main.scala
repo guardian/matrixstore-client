@@ -10,7 +10,7 @@ import scala.concurrent.Await
 import scala.jdk.CollectionConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 object Main {
   lazy implicit val actorSystem:ActorSystem = ActorSystem("matrixstore-client")
@@ -50,25 +50,34 @@ object Main {
 
     while(true) {
       val prompt = interpreter.session.activeVaultId match {
-        case None=>
+        case None =>
           defaultPrompt
-        case Some(vaultId)=>
+        case Some(vaultId) =>
           s"$vaultId$defaultPrompt"
       }
 
       //we must read in the line here, this stores it in the LineReader's state so we can ignore the return value
       //and rely on the LineReader to send it directly to the parser
-      lineReader.readLine(prompt, "", null.asInstanceOf[MaskingCallback], null)
-      val request = lineReader.getParsedLine
-      val tokens = request.words().asScala
-      if(tokens.headOption.contains("exit")) {
-        terminal.writer().println("Goodbye!")
-        terminal.writer().flush()
-        interpreter.session.cleanup()
-        return
-      }
+      Try {
+        lineReader.readLine(prompt, "", null.asInstanceOf[MaskingCallback], null)
+      } match {
+        case Success(_) =>
+          val request = lineReader.getParsedLine
+          val tokens = request.words().asScala
+          if (tokens.headOption.contains("exit")) {
+            terminal.writer().println("Goodbye!")
+            terminal.writer().flush()
+            interpreter.session.cleanup()
+            return
+          }
 
-      interpreter.handle(lineReader.getParsedLine)
+          interpreter.handle(lineReader.getParsedLine)
+        case Failure(err) =>
+          terminal.writer().println(s"Got an error from the terminal: ${err.getMessage}", err)
+          terminal.writer().flush()
+          interpreter.session.cleanup()
+          return
+      }
     }
   }
 

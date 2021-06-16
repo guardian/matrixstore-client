@@ -44,16 +44,7 @@ class LookupFilename extends BaseCommand {
           Await.result(
             result.map(results => {
               terminal.writer().println(s"Got ${results.length} results:")
-              results.foreach(entry => {
-                terminal.writer().println(s"${entry.oid}\t${entry.getFileSize.map(_.toString).getOrElse("(no size)")}\t\t${entry.pathOrFilename.getOrElse("(no name)")}")
-                entry.attributes.map(meta=>{
-                  meta.stringValues.foreach(kv=>terminal.writer().println(s"\t${kv._1}: ${kv._2}"))
-                  meta.intValues.foreach(kv=>terminal.writer().println(s"\t${kv._1}: ${kv._2}"))
-                  meta.longValues.foreach(kv=>terminal.writer().println(s"\t${kv._1}: ${kv._2}"))
-                  meta.boolValues.foreach(kv=>terminal.writer().println(s"\t${kv._1}: ${kv._2}"))
-                  meta.floatValues.foreach(kv=>terminal.writer().println(s"\t${kv._1}: ${kv._2}"))
-                })
-              })
+              results.foreach(entry => printMeta(entry))
               terminal.writer().flush()
               session
             }),
