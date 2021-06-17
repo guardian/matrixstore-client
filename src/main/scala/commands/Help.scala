@@ -12,18 +12,19 @@ class Help extends BaseCommand {
     Seq(
       "Available commands:",
       "\tconnect                - connects to an appliance",
-      "\tdisconnect | dis       - close the current connection opened by `connect`",
-      "\texit                   - leaves the program",
+      "\tdisconnect | dis       - close the current connection opened by `connect`, does not show help",
+      "\texit                   - leaves the program, does not show help",
       "\tstacktrace             - show detailed information for the last error that happened",
       "\tsearch {query-string}  - perform a search on the MatrixStore",
-      "\tlookup {filepath}      - perform a basic search on MXFS_FILEPATH and return full metadata. Indended to be used for single files.",
+      "\tlookup {filepath}      - perform a basic search on MXFS_FILEPATH and return full metadata. Intended to be used for single files.",
       "\tmd5 {oid}              - calculate appliance-side checksum for the given object. Get the OID from `search` or `lookup`.",
+      "\tmeta {oid}             - show all metadata fields associated with the given object. Get the OID from `search` or `lookup`.",
       "\tdelete {oid}           - delete the object from the appliance. Note that if there is no Trash period configured, the file will be gone baby gone.",
       "\tset timeout {value}    - changes the async timeout parameter. {value} is a string that must parse to FiniteDuration, e.g. '1 minute' or '2 hours'. Default is one minute.",
       "\tset pagesize {value}   - changes the number of rows to be printed before pausing for QUIT/CONTINUE when performing a search",
       "\tshow headers {on|off}  - set whether to show the header line when searching",
       "",
-      "Write any command followed by the word 'help' to see a brief summary of any options that are required"
+      "Write any command without arguments to see a brief summary of any options that are required"
     ).foreach(line=>terminal.writer().println(line))
     terminal.writer().flush()
     Success(session)

@@ -57,7 +57,11 @@ object MetadataHelper {
   def getAttributeMetadataSync(obj:MxsObject) = {
     val view = obj.getAttributeView
 
-    view.iterator.asScala.foldLeft(MxsMetadata.empty){ (acc, elem)=>{
+    val baseMeta = MxsMetadata
+      .empty()
+      .withValue("__mxs__length", view.readLong("__mxs__length"))
+
+    view.iterator.asScala.foldLeft(baseMeta){ (acc, elem)=>{
       val v = elem.getValue.asInstanceOf[Any]
       v match {
         case boolValue: Boolean => acc.copy(boolValues = acc.boolValues ++ Map(elem.getKey->boolValue))
