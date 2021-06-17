@@ -24,8 +24,12 @@ sbt run
 
 ## How to use it
 
-In order to run, either do it straight through `sbt` as above or run in Docker:
+In order to run from a built JAR, either build a JAR as above or download from Github releases then:
+```
+java -jar {path-to-downloaded-jar}
+```
 
+Alternatively, if you'd rather use Docker:
 ```
 docker run --rm -it guardianmultimedia/matrixstore-client:DEV
 ```
