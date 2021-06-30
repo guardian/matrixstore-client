@@ -10,18 +10,28 @@ import models.ObjectMatrixEntry
 import org.jline.reader.LineReader
 import org.jline.terminal.Terminal
 import streamcomponents.OMFastSearchSource
-
-import java.nio.CharBuffer
 import scala.concurrent.{Await, Future, Promise}
 import scala.util.{Success, Try}
 
 class Search extends BaseCommand {
+  val baseIncludeFields = Array(
+    "MXFS_PATH",
+    "MXFS_FILENAME",
+    "DPSP_SIZE",
+    "__mxs__length",
+    "MXFS_MODIFICATION_TIME",
+    "MXFS_ACCESS_TIME",
+    "MXFS_CREATION_TIME",
+    "MXFS_ARCHIVE_TIME",
+    "MXFS_INTRASH"
+  )
+
   class PrintResultSink(includeFields:Array[String], itemsPerPage:Int, showHeaders:Boolean, killSwitch:KillSwitch)(implicit terminal:Terminal, lineReader: LineReader)
     extends GraphStageWithMaterializedValue[SinkShape[ObjectMatrixEntry], Future[Done]] {
     private val in:Inlet[ObjectMatrixEntry] = Inlet.create("PrintResultSink.in")
 
     private val fieldsToPrint = includeFields.filter(n=>{ //we print these anyway
-      n!="MXFS_FILENAME" && n!="MXFS_PATH" && n!= "DPSP_SIZE" && n!="__mxs__length"
+      !baseIncludeFields.contains(n)
     })
     override def shape: SinkShape[ObjectMatrixEntry] = SinkShape.of(in)
 
@@ -53,10 +63,14 @@ class Search extends BaseCommand {
           override def onPush(): Unit = {
             val result = grab(in)
             val fields = Seq(
-              result.maybeGetPath().getOrElse("[no path]"),
-              result.oid,
-              result.getFileSize.map(_.toString).getOrElse("[no size]"),
-            ) ++ fieldsToPrint.map(f => result.stringAttribute(f).getOrElse("-"))
+              "Path or filename: " + result.maybeGetPath().getOrElse("[no path]"),
+              "OID: " + result.oid,
+              "Size in bytes: " + result.getFileSize.map(_.toString).getOrElse("[no size]"),
+              "MXFS_MODIFICATION_TIME: " + result.timeAttribute("MXFS_MODIFICATION_TIME"),
+              "MXFS_ACCESS_TIME: " + result.timeAttribute("MXFS_ACCESS_TIME"),
+              "MXFS_CREATION_TIME: " + result.timeAttribute("MXFS_CREATION_TIME"),
+              "MXFS_ARCHIVE_TIME: " + result.timeAttribute("MXFS_ARCHIVE_TIME"),
+            ) ++ fieldsToPrint.map(f => s"$f: " + result.stringAttribute(f).getOrElse("-"))
 
             terminal.writer().println(fields.mkString("\n"))
             terminal.writer().println("------------")
@@ -129,15 +143,9 @@ class Search extends BaseCommand {
                   (implicit terminal: Terminal, lineReader: LineReader, actorSystem: ActorSystem, mat: Materializer): Try[Session] = {
     (session.activeConnection, session.activeVaultId) match {
       case (Some(mxs), Some(vaultId))=>
-        val baseIncludeFields = Array(
-          "MXFS_PATH",
-          "MXFS_FILENAME",
-          "DPSP_SIZE",
-          "__mxs__length",
-        )
         Try {
           Await.result(
-            doSearch(params, mxs, vaultId, session.itemsPerPage, session.showHeaders, baseIncludeFields),
+            doSearch(params, mxs, vaultId, session.itemsPerPage, session.showHeaders, baseIncludeFields ++ session.fields),
             session.asyncTimeout
           )
         }.map(_=>session)

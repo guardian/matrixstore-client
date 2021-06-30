@@ -25,10 +25,37 @@ case class ObjectMatrixEntry(oid:String, attributes:Option[MxsMetadata], fileAtt
   def hasMetadata:Boolean = attributes.isDefined && fileAttribues.isDefined
 
   def stringAttribute(key:String) = attributes.flatMap(_.stringValues.get(key))
-  def intAttribute(key:String) = attributes.flatMap(_.intValues.get(key))
-  def longAttribute(key:String) = attributes.flatMap(_.longValues.get(key))
-  def timeAttribute(key:String, zoneId:ZoneId=ZoneId.systemDefault()) = attributes
-    .flatMap(_.longValues.get(key))
+  def intAttribute(key:String) = attributes.flatMap(_.intValues.get(key)) match {
+    case ok@Some(_)=>ok
+    case None=>
+      for {
+        attrs <- attributes
+        stringValue <- attrs.stringValues.get(key)
+        intValue <- Try { stringValue.toInt }.toOption
+      } yield intValue
+  }
+
+  def boolAttribute(key:String) = attributes.flatMap(_.boolValues.get(key)) match {
+    case ok@Some(_)=>ok
+    case None=>
+      for {
+        attrs <- attributes
+        stringValue <- attrs.stringValues.get(key)
+        boolValue <- Try { stringValue.toBoolean }.toOption
+      } yield boolValue
+  }
+
+  def longAttribute(key:String) = attributes.flatMap(_.longValues.get(key)) match {
+    case ok@Some(_)=>ok
+    case None=>
+      for {
+        attrs <- attributes
+        stringValue <- attrs.stringValues.get(key)
+        longValue <- Try { stringValue.toLong }.toOption
+      } yield longValue
+  }
+
+  def timeAttribute(key:String, zoneId:ZoneId=ZoneId.systemDefault()) = longAttribute(key)
     .map(v=>ZonedDateTime.ofInstant(Instant.ofEpochMilli(v),zoneId))
 
   def maybeGetPath() = stringAttribute("MXFS_PATH")
