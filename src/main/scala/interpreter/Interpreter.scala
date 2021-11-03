@@ -21,6 +21,7 @@ class Interpreter(implicit val actorSystem: ActorSystem, mat:Materializer) {
     LeafToken("delete", new Delete),
     LeafToken("md5", new MD5),
     LeafToken("meta", new Meta),
+    LeafToken("get", new Get),
     BranchToken("set", Seq(
       LeafToken("timeout", new SetAsyncTimeout),
       LeafToken("pagesize", new SetPageSize),

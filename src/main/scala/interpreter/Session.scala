@@ -42,5 +42,5 @@ case class Session(
 }
 
 object Session {
-  def empty = new Session(None, None, None, 1.minute, 10, true)
+  def empty = new Session(None, None, None, 1.minute, 10, true, Seq())
 }

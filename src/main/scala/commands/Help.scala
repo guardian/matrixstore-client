@@ -19,6 +19,7 @@ class Help extends BaseCommand {
       "\tlookup {filepath}      - perform a basic search on MXFS_FILEPATH and return full metadata. Intended to be used for single files.",
       "\tmd5 {oid}              - calculate appliance-side checksum for the given object. Get the OID from `search` or `lookup`.",
       "\tmeta {oid}             - show all metadata fields associated with the given object. Get the OID from `search` or `lookup`.",
+      "\tget {oid}              - download the file content of {oid} to the current directory.",
       "\tdelete {oid}           - delete the object from the appliance. Note that if there is no Trash period configured, the file will be gone baby gone.",
       "\tset timeout {value}    - changes the async timeout parameter. {value} is a string that must parse to FiniteDuration, e.g. '1 minute' or '2 hours'. Default is one minute.",
       "\tset pagesize {value}   - changes the number of rows to be printed before pausing for QUIT/CONTINUE when performing a search",

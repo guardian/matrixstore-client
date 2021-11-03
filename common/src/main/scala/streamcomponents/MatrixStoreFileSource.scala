@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory
 import scala.collection.JavaConverters._
 
 
-class MatrixStoreFileSource(userInfo:UserInfo, sourceId:String, bufferSize:Int=2*1024*1024) extends GraphStage[SourceShape[ByteString]]{
+class MatrixStoreFileSource(vault:Vault, sourceId:String, bufferSize:Int=2*1024*1024) extends GraphStage[SourceShape[ByteString]]{
   private final val out:Outlet[ByteString] = Outlet.create("MatrixStoreFileSource.out")
 
   override def shape: SourceShape[ByteString] = SourceShape.of(out)
@@ -21,7 +21,6 @@ class MatrixStoreFileSource(userInfo:UserInfo, sourceId:String, bufferSize:Int=2
     private val logger = LoggerFactory.getLogger(getClass)
     private var stream:InputStream = _
     private var mxsFile:MxsObject = _
-    private var vault:Vault = _
 
     setHandler(out, new AbstractOutHandler {
       override def onPull(): Unit = {
@@ -48,7 +47,6 @@ class MatrixStoreFileSource(userInfo:UserInfo, sourceId:String, bufferSize:Int=2
     })
 
     override def preStart(): Unit = {
-      vault = MatrixStore.openVault(userInfo)
       mxsFile = vault.getObject(sourceId)
       stream = mxsFile.newInputStream()
 
@@ -57,7 +55,6 @@ class MatrixStoreFileSource(userInfo:UserInfo, sourceId:String, bufferSize:Int=2
 
     override def postStop(): Unit = {
       if(stream!=null) stream.close()
-      vault.dispose()
     }
   }
 }
