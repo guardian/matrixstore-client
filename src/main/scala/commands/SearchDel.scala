@@ -3,6 +3,7 @@ import akka.Done
 import akka.actor.ActorSystem
 import akka.stream.stage.{AbstractInHandler, GraphStageLogic, GraphStageWithMaterializedValue}
 import akka.stream.{Attributes, Inlet, KillSwitch, KillSwitches, Materializer, SinkShape}
+import com.om.mxs.client.japi.Vault
 import interpreter.Session
 import models.ObjectMatrixEntry
 import org.jline.reader.LineReader
@@ -10,7 +11,7 @@ import org.jline.terminal.Terminal
 
 import scala.collection.mutable
 import scala.concurrent.{Await, Future, Promise}
-import scala.util.{Success, Try}
+import scala.util.{Failure, Success, Try}
 
 class SearchDel extends BaseCommand {
   import SearchFunctions._
@@ -68,8 +69,21 @@ class SearchDel extends BaseCommand {
     }
   }
 
+  def tryToDelete(vault:Vault, oid:String)(implicit terminal: Terminal):Try[Unit] = Try {
+    val obj = vault.getObject(oid)
+    obj.delete()
+  } match {
+    case s@Success(_)=>
+      terminal.writer().println(s"Deleted $oid")
+      s
+    case e@Failure(err)=>
+      terminal.writer().println(s"$oid failed deletion: ${err.getMessage}")
+      e
+  }
+
   override def run(params: Seq[String], session: Session)
                   (implicit terminal: Terminal, lineReader: LineReader, actorSystem: ActorSystem, mat: Materializer): Try[Session] = {
+    var ctr:Int=0
     (session.activeConnection, session.activeVaultId) match {
       case (Some(mxs), Some(vaultId))=>
         Try {
@@ -83,7 +97,7 @@ class SearchDel extends BaseCommand {
           )
           val oidsToDelete = result._1
           val totalSizeToDelete = result._2
-          terminal.writer().println(s"${oidsToDelete.length} files totalling ${userFriendlySize(totalSizeToDelete)} will be deleted. Are you sure you want to continue? (y/n)")
+          terminal.writer().println(s"\n\n\n${oidsToDelete.length} files totalling ${userFriendlySize(totalSizeToDelete)} will be deleted. Are you sure you want to continue? (y/n)")
           terminal.writer().flush()
           val promptResult = terminal.reader().read(1800L)
           promptResult match {
@@ -96,8 +110,20 @@ class SearchDel extends BaseCommand {
             case _=>
               val char = promptResult.toChar
               if(char.toLower=='y') {
-                terminal.writer().println("Not implemented yet!")
-
+                terminal.writer().println(s"Deleting ${oidsToDelete.length} items...")
+                withVault(mxs, vaultId) { vault =>
+                  val results = oidsToDelete.map(oid=>{
+                    val result = tryToDelete(vault, oid)
+                    ctr+=1
+                    if(ctr>50) terminal.writer().flush()
+                    result
+                  })
+                  terminal.writer().flush()
+                  val successes = results.count(_.isSuccess)
+                  val failures = results.count(_.isFailure)
+                  terminal.writer().println(s"Deletion runcompleted. $successes files deleted successfully and $failures failed.")
+                  Success( () )
+                }
               } else {
                 terminal.writer().println("Not deleting anything then")
               }
