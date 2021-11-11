@@ -19,6 +19,7 @@ class Interpreter(implicit val actorSystem: ActorSystem, mat:Materializer) {
     LeafToken("search", new Search),
     LeafToken("lookup", new LookupFilename),
     LeafToken("delete", new Delete),
+    LeafToken("searchdel", new SearchDel),
     LeafToken("md5", new MD5),
     LeafToken("meta", new Meta),
     LeafToken("get", new Get),
