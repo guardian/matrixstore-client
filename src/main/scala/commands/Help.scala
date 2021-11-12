@@ -21,6 +21,7 @@ class Help extends BaseCommand {
       "\tmeta {oid}             - show all metadata fields associated with the given object. Get the OID from `search` or `lookup`.",
       "\tget {oid}              - download the file content of {oid} to the current directory.",
       "\tdelete {oid}           - delete the object from the appliance. Note that if there is no Trash period configured, the file will be gone baby gone.",
+      "\tsearchdel {query-string} - delete every object that matches the given query string. The list of objects to delete is shown first and you are prompted whether to continue or not",
       "\tset timeout {value}    - changes the async timeout parameter. {value} is a string that must parse to FiniteDuration, e.g. '1 minute' or '2 hours'. Default is one minute.",
       "\tset pagesize {value}   - changes the number of rows to be printed before pausing for QUIT/CONTINUE when performing a search",
       "\tshow headers {on|off}  - set whether to show the header line when searching",
