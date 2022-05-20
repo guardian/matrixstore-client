@@ -57,4 +57,4 @@ jobs:
           automatic_release_tag: "latest"
           prerelease: true
           title: "Development Build"
-          files: target/scala-2.13/matrixstore-assembly.jar
+          files: target/scala-2.13/matrixstore-client.jar
