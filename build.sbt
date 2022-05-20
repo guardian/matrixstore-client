@@ -6,7 +6,7 @@ enablePlugins(DockerPlugin, RpmPlugin, AshScriptPlugin)
 
 name := "matrixstore-client"
 
-version := "0.1"
+version := sys.props.getOrElse("version.number", "0.1")
 
 scalaVersion := "2.13.6"
 
@@ -15,6 +15,7 @@ val slf4jVersion = "1.7.25"
 val akkaVersion = "2.6.15"
 
 lazy val `common` = (project in file("common"))
+  .enablePlugins(plugins.JUnitXmlReportPlugin)
   .settings(
     Docker / aggregate := false,
     Docker / publish := {},
@@ -33,7 +34,9 @@ lazy val `common` = (project in file("common"))
       "com.github.scopt" %% "scopt" % "3.7.1",
       "org.specs2" %% "specs2-core" % "4.5.1" % Test,
       "org.specs2" %% "specs2-mock" % "4.5.1" % Test,
-      "org.mockito" % "mockito-core" % "2.28.2" % Test
+      "org.mockito" % "mockito-core" % "2.28.2" % Test,
+      "com.novocode" % "junit-interface" % "0.11" % Test,
+      "org.specs2" %% "specs2-junit" % "4.12.12" % Test
     ),
     updateOptions := updateOptions.value.withCachedResolution(false),
       Compile / unmanagedJars  += file("lib/mxsjapi.jar"),
@@ -42,6 +45,7 @@ lazy val `common` = (project in file("common"))
 
 lazy val root = (project in file("."))
   .dependsOn(`common`)
+  .enablePlugins(plugins.JUnitXmlReportPlugin)
   .settings(
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-stream" % akkaVersion,

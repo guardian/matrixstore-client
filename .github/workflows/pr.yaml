@@ -1,0 +1,51 @@
+name: Branch-build
+
+on:
+  pull_request:
+    branches:
+      - "*"
+
+jobs:
+  pullrequest:
+    runs-on: ubuntu-latest
+    # These permissions are needed to interact with GitHub's OIDC Token endpoint.
+    permissions:
+      id-token: write
+      contents: read
+      checks: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: temurin
+          java-version: 8
+
+      - name: Branch name
+        id: branch_name
+        run: |
+          echo ::set-output name=SOURCE_NAME::${GITHUB_REF#refs/*/}
+          echo ::set-output name=SOURCE_BRANCH::${GITHUB_REF#refs/heads/}
+          echo ::set-output name=SOURCE_TAG::${GITHUB_REF#refs/tags/}
+
+      - name: Check branch name values
+        run: |
+          echo $SOURCE_NAME
+          echo $SOURCE_BRANCH
+          echo $SOURCE_TAG
+        env:
+          SOURCE_NAME: ${{ steps.branch_name.outputs.SOURCE_NAME }}
+          SOURCE_BRANCH: ${{ steps.branch_name.outputs.SOURCE_BRANCH }}
+          SOURCE_TAG: ${{ steps.branch_name.outputs.SOURCE_TAG }}
+
+      - run: if [ -d "junit-tests" ]; then mkdir junit-tests; fi
+        name: Prepare test outputs location
+
+      - name: Build and test
+        env:
+          JAVA_OPTS: "-Dbuild.number=${{ env.GITHUB_RUN_NUMBER }}"
+          SBT_JUNIT_OUTPUT: ./junit-tests
+        run: sbt -v "test; assembly"
