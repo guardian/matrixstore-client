@@ -2,40 +2,49 @@
 
 A simple commandline client for accessing files on a MatrixStore device
 
-## How to build
+# Prerequisites
 
-Once you have a v1.8 JDK installed and SBT (**NOTE** - the ObjectMatrix
-libraries _require_ JDK 1.8 and nothing newer) then you can simply build by either:
+You'll need Java v1.8 installed. Note that _later_ Java is NOT supported, owing to trouble with the third-party libraries.
+On a Mac, you can check your Java version like so:
+```
+/usr/libexec/java_home -V
+Matching Java Virtual Machines (5):
+    15.0.2, x86_64:	"OpenJDK 15.0.2"	/Library/Java/JavaVirtualMachines/openjdk.jdk/Contents/Home
+    11.0.11, x86_64:	"OpenJDK 11.0.11"	/Users/myself/Library/Java/JavaVirtualMachines/adopt-openjdk-11.0.11/Contents/Home
+    1.8.0_282, x86_64:	"OpenJDK 8"	/Library/Java/JavaVirtualMachines/openjdk-8.jdk/Contents/Home
+    1.6.0_65-b14-468, x86_64:	"Java SE 6"	/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home
+    1.6.0_65-b14-468, i386:	"Java SE 6"	/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home
 
-```
-sbt assembly
-```
-will produce a single, runnable JAR file in the `target/scala-2.13` directory or:
-```
-sbt docker:publishLocal
-```
-will produce a Docker image on your local Docker daemon.
-
-Or you can run "from source" by:
-
-```
-sbt run
+/Library/Java/JavaVirtualMachines/openjdk.jdk/Contents/Home
 ```
 
-## How to use it
+You will see that my default is currently 15. To change this, run
+```bash
+declare -x JAVA_HOME=/Library/Java/JavaVirtualMachines/openjdk-8.jdk/Contents/Home
+```
+(get the right path from the output of java_home)
+
+
+## How to get it
+
+Go to the Release page on github, find the release you want and download the JAR file.
+Save it onto your local machine then open a Terminal (or your Windows equivalent) and go to that location
 
 In order to run from a built JAR, either build a JAR as above or download from Github releases then:
 ```
 java -jar {path-to-downloaded-jar}
 ```
 
-Alternatively, if you'd rather use Docker:
-```
-docker run --rm -it guardianmultimedia/matrixstore-client:DEV
-```
+## How to use it
 
-No ports are necessary, but you'll need to make sure an interactive terminal
-is provisoßned (the `-it` argument above)
+**How do I download a file from Matrixstore?** - read through to the bottom of this document and don't skip :-p
+
+TL;DR: 
+1. Log into the vault
+2. Use the `search` or `lookup` commands to find what you are interested in
+3. Find the OID of the file. This is the long thing that looks like a UUID with another part at the end
+4. Run `get` then the OID. The file will be downloaded to the current working directory of your machine, with a filename taken from the MXFS_FILE field.
+
 
 The first thing you'll need to do is to make a connection to a cluster.  You
 do this with the `connect` command:
@@ -73,18 +82,21 @@ Once you're logged in, use the `help` command to list out the actions that can b
 {vault-id}> help
 Available commands:
 	connect                - connects to an appliance
-	disconnect | dis       - close the current connection opened by `connect`
-	exit                   - leaves the program
+	disconnect | dis       - close the current connection opened by `connect`, does not show help
+	exit                   - leaves the program, does not show help
 	stacktrace             - show detailed information for the last error that happened
-	search {query-string}  - perform a search on the MatrixStore.
-	lookup {filepath}      - perform a basic search on MXFS_FILEPATH and return full metadata. Indended to be used for single files - wildcard lookups probably won't work.
+	search {query-string}  - perform a search on the MatrixStore
+	lookup {filepath}      - perform a basic search on MXFS_FILEPATH and return full metadata. Intended to be used for single files.
 	md5 {oid}              - calculate appliance-side checksum for the given object. Get the OID from `search` or `lookup`.
+	meta {oid}             - show all metadata fields associated with the given object. Get the OID from `search` or `lookup`.
+	get {oid}              - download the file content of {oid} to the current directory.
 	delete {oid}           - delete the object from the appliance. Note that if there is no Trash period configured, the file will be gone baby gone.
+	searchdel {query-string} - delete every object that matches the given query string. The list of objects to delete is shown first and you are prompted whether to continue or not
 	set timeout {value}    - changes the async timeout parameter. {value} is a string that must parse to FiniteDuration, e.g. '1 minute' or '2 hours'. Default is one minute.
 	set pagesize {value}   - changes the number of rows to be printed before pausing for QUIT/CONTINUE when performing a search
 	show headers {on|off}  - set whether to show the header line when searching
 
-Write any command followed by the word 'help' to see a brief summary of any options that are required
+Write any command without arguments to see a brief summary of any options that are required
 {vault-id}> 
 ```
 
@@ -240,3 +252,30 @@ convenience but it's always worth double-checking the appliance version and gett
 of the right guide directly from ObjectMatrix.
 
 The search queries are not validated or interpreted by this software, they are just passed over blindly.
+
+## How to download something?
+
+1. Log into the vault
+2. Use the `search` or `lookup` commands to find what you are interested in
+3. Find the OID of the file. This is the long thing that looks like a UUID with another part at the end
+4. Run `get` then the OID. The file will be downloaded to the current working directory of your machine, with a filename taken from the MXFS_FILE field.
+
+# How to build
+
+Once you have a v1.8 JDK installed and SBT (**NOTE** - the ObjectMatrix
+libraries _require_ JDK 1.8 and nothing newer) then you can simply build by either:
+
+```
+sbt assembly
+```
+will produce a single, runnable JAR file in the `target/scala-2.13` directory or:
+```
+sbt docker:publishLocal
+```
+will produce a Docker image on your local Docker daemon.
+
+Or you can run "from source" by:
+
+```
+sbt run
+```
