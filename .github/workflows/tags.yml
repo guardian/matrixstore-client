@@ -43,7 +43,6 @@ jobs:
           SOURCE_BRANCH: ${{ steps.branch_name.outputs.SOURCE_BRANCH }}
           SOURCE_TAG: ${{ steps.branch_name.outputs.SOURCE_TAG }}
 
-
       - name: Build and test
         env:
           JAVA_OPTS: "-Dbuild.number=${{ env.GITHUB_RUN_NUMBER }} -Dversion.number=${{ steps.branch_name.outputs.SOURCE_TAG }}"
