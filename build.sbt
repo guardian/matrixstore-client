@@ -6,7 +6,7 @@ enablePlugins(DockerPlugin, RpmPlugin, AshScriptPlugin)
 
 name := "matrixstore-client"
 
-version := "0.1"
+version := sys.props.getOrElse("version.number", "0.1")
 
 scalaVersion := "2.13.6"
 
