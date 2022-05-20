@@ -52,7 +52,5 @@ jobs:
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "latest"
-          prerelease: true
-          title: "Development Build"
+          prerelease: false
           files: target/scala-2.13/matrixstore-client-assembly-${{ steps.branch_name.outputs.SOURCE_TAG }}
