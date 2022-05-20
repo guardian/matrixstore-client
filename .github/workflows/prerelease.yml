@@ -50,3 +50,11 @@ jobs:
           JAVA_OPTS: "-Dbuild.number=${{ env.GITHUB_RUN_NUMBER }}"
           SBT_JUNIT_OUTPUT: ./junit-tests
         run: sbt -v "test; assembly"
+
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: true
+          title: "Development Build"
+          files: target/scala-2.13/matrixstore-client-assembly-${{ env.RELEASE_STRING }}
